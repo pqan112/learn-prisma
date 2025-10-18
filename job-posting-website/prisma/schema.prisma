@@ -1,17 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_DIRECT_URL")
 }
 
 model Account {
@@ -19,12 +14,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   userId            String
   User              User    @relation(fields: [userId], references: [id])
@@ -55,36 +50,33 @@ model User {
   emailVerified DateTime?
   image         String?
   accounts      Account[]
-  sessions      Session[]
-  jobs          Job[]         @relation("PostedJobs")
   applications  Application[]
+  jobs          Job[]         @relation("PostedJobs")
+  sessions      Session[]
 }
 
 model Job {
-  id          String  @id @default(cuid())
-  title       String
-  company     String
-  location    String
-  type        String
-  description String  @db.Text
-  salary      String?
-
-  postedAt   DateTime @default(now())
-  postedById String
-  postedBy   User     @relation("PostedJobs", fields: [postedById], references: [id])
-
+  id           String        @id @default(cuid())
+  title        String
+  company      String
+  location     String
+  type         String
+  description  String
+  salary       String?
+  postedAt     DateTime      @default(now())
+  postedById   String
   applications Application[]
+  postedBy     User          @relation("PostedJobs", fields: [postedById], references: [id])
 }
 
 model Application {
   id        String   @id @default(cuid())
   jobId     String
   userId    String
-  status    String   @default("PENDING") // REVIEWING, ACCEPTED, REJECTED
+  status    String   @default("PENDING")
   appliedAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-  job  Job  @relation(fields: [jobId], references: [id])
+  job       Job      @relation(fields: [jobId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([jobId, userId])
 }
